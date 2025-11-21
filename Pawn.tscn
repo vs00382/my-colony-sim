@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://d0gjx0mfja4sc"]
+
+[ext_resource type="Script" uid="uid://csxu80wa3c47j" path="res://pawn.gd" id="1_soa38"]
+
+[sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ulpgq"]
+size = Vector2(32, 32)
+
+[node name="Pawn" type="Node2D"]
+script = ExtResource("1_soa38")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = SubResource("PlaceholderTexture2D_ulpgq")
