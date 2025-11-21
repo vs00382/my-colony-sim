@@ -1,64 +1,48 @@
 extends Node2D
 
 @onready var ground_layer: TileMapLayer = $GroundLayer
-@onready var pawn: Node2D = $Pawn
 
-var astar := AStarGrid2D.new()
+# Tile atlas coords for your terrain
+const SOURCE_ID := 0
+const WATER   := Vector2i(4, 20)
+const SAND    := Vector2i(15, 3)
+const GRASS   := Vector2i(11, 2)
+const FOREST  := Vector2i(9, 12)
+const ROCK    := Vector2i(5, 1)
+
+# World size
+const MAP_WIDTH := 200
+const MAP_HEIGHT := 200
 
 func _ready():
-	build_astar_from_tilemap()
+	generate_world()
 
-func build_astar_from_tilemap():
-	# Use tilemap’s actual tile size
-	astar.cell_size = ground_layer.tile_set.tile_size
-	astar.diagonal_mode = AStarGrid2D.DIAGONAL_MODE_ALWAYS
 
-	# Get all used tiles in the tilemap
-	var used := ground_layer.get_used_cells()
-	if used.is_empty():
-		push_warning("TileMapLayer has no tiles!")
-		return
+func generate_world():
+	var noise := FastNoiseLite.new()
+	noise.seed = randi()
+	noise.noise_type = FastNoiseLite.TYPE_SIMPLEX
+	noise.frequency = 0.015
+	noise.fractal_octaves = 4
 
-	# Determine bounding box of painted tiles
-	var min_x = used[0].x
-	var min_y = used[0].y
-	var max_x = used[0].x
-	var max_y = used[0].y
+	for x in MAP_WIDTH:
+		for y in MAP_HEIGHT:
+			var n := noise.get_noise_2d(float(x), float(y))
+			var atlas := get_tile_from_noise(n)
 
-	for c in used:
-		min_x = min(min_x, c.x)
-		min_y = min(min_y, c.y)
-		max_x = max(max_x, c.x)
-		max_y = max(max_y, c.y)
+			# (source_id, atlas_coords, alternative=0)
+			ground_layer.set_cell(Vector2i(x, y), SOURCE_ID, atlas, 0)
 
-	astar.region = Rect2i(min_x, min_y, max_x - min_x + 1, max_y - min_y + 1)
 
-	# Mark all walkable tiles
-	for c in used:
-		astar.set_point_solid(c, false)
-
-	# Mark all non-painted tiles inside region as blocked
-	for x in astar.region.size.x:
-		for y in astar.region.size.y:
-			var c = Vector2i(min_x + x, min_y + y)
-			if not used.has(c):
-				astar.set_point_solid(c, true)
-
-	astar.update()
-
-func _input(event):
-	if event is InputEventMouseButton and event.pressed:
-		var mouse_local = ground_layer.to_local(event.position)
-		var target_cell = ground_layer.local_to_map(mouse_local)
-
-		var pawn_local = ground_layer.to_local(pawn.global_position)
-		var start_cell = ground_layer.local_to_map(pawn_local)
-
-		var path = astar.get_id_path(start_cell, target_cell)
-		print("PATH:", path)
-
-		if path.is_empty():
-			print("NO PATH")
-			return
-
-		pawn.follow_path(path)
+func get_tile_from_noise(n: float) -> Vector2i:
+	# Tune thresholds as you like
+	if n < -0.35:
+		return WATER
+	elif n < -0.15:
+		return SAND
+	elif n < 0.25:
+		return GRASS
+	elif n < 0.55:
+		return FOREST
+	else:
+		return ROCK
