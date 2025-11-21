@@ -1,25 +1,40 @@
 extends Node2D
 
-const SPEED: float = 4.0      # tiles per second
+@export var SPEED: float = 4.0             # tiles per second
 const CELL_SIZE: float = 32.0
 
-var target_cell: Vector2i = Vector2i.ZERO
-var is_moving: bool = false
+var path: Array[Vector2i] = []
+var current_index: int = 0
 
-func move_to(cell: Vector2i) -> void:
-	target_cell = cell
-	is_moving = true
+func _ready():
+	snap_to_grid()
+
+func snap_to_grid():
+	var cell := Vector2i(global_position.x / CELL_SIZE, global_position.y / CELL_SIZE)
+	global_position = Vector2(cell.x * CELL_SIZE, cell.y * CELL_SIZE)
+
+func follow_path(new_path: Array[Vector2i]):
+	path = new_path
+	current_index = 0
 
 func _physics_process(delta: float) -> void:
-	if not is_moving:
+	print("PATH = ", path)
+	if current_index >= path.size():
 		return
 
-	var target_pos = Vector2(target_cell) * CELL_SIZE
-	var dir = target_pos - global_position
+	var cell: Vector2i = path[current_index]
+	var target_pos: Vector2 = Vector2(cell.x * CELL_SIZE, cell.y * CELL_SIZE)
+	var dir: Vector2 = target_pos - global_position
+	var distance := dir.length()
 
-	if dir.length() < 1.0:
+	# Step size (scaled automatically for diagonal)
+	var step: float = SPEED * CELL_SIZE * delta
+
+	# Snap to tile center when close enough
+	if distance <= step:
 		global_position = target_pos
-		is_moving = false
+		current_index += 1
 		return
 
-	global_position += dir.normalized() * SPEED * CELL_SIZE * delta
+	# Move smoothly toward target (handles diagonal cases)
+	global_position += dir.normalized() * step
