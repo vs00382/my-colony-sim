@@ -1,7 +1,7 @@
 extends Node2D
 
 @export var SPEED: float = 4.0             # tiles per second
-const CELL_SIZE: float = 32.0
+const CELL_SIZE: float = 16.0
 
 var path: Array[Vector2i] = []
 var current_index: int = 0

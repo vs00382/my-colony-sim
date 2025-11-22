@@ -3,7 +3,7 @@
 [ext_resource type="Script" uid="uid://csxu80wa3c47j" path="res://pawn.gd" id="1_soa38"]
 
 [sub_resource type="PlaceholderTexture2D" id="PlaceholderTexture2D_ulpgq"]
-size = Vector2(32, 32)
+size = Vector2(16, 16)
 
 [node name="Pawn" type="Node2D"]
 script = ExtResource("1_soa38")
