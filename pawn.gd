@@ -18,7 +18,6 @@ func follow_path(new_path: Array[Vector2i]):
 	current_index = 0
 
 func _physics_process(delta: float) -> void:
-	print("PATH = ", path)
 	if current_index >= path.size():
 		return
 
